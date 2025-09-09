@@ -9,13 +9,16 @@ user_data = {}
 
 # ---- STEP 3: /start command ----
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.message.chat_id
+    chat_id = update.effective_chat.id
     user_data[chat_id] = {}
     await update.message.reply_text("Welcome! Please enter your Name:")
 
 # ---- STEP 4: Collect user details ----
 async def collect_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.message.chat_id
+    if update.message is None:  # safety check
+        return
+
+    chat_id = update.effective_chat.id
     text = update.message.text
 
     if chat_id not in user_data:
@@ -34,9 +37,9 @@ async def collect_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data[chat_id]["email"] = text
         details = user_data[chat_id]
 
-        # Razorpay Payment Button
+        # Razorpay Payment Button + Verify with Admin
         keyboard = [
-            [InlineKeyboardButton("Pay Now 💳", url="https://rzp.io/rzp/W4JTqq3F")]
+            [InlineKeyboardButton("CONTACT ADMIN 👨‍💻", url="https://t.me/teamsuperrogers")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -46,7 +49,7 @@ async def collect_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Branch: {details['branch']}\n"
             f"College: {details['college']}\n"
             f"Email: {details['email']}\n\n"
-            "👉 Complete your payment by clicking the button below:"
+            "👉 Complete your payment or contact the admin for verification:"
         )
 
         await update.message.reply_text(msg, reply_markup=reply_markup)
@@ -56,6 +59,8 @@ def main():
     app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, collect_data))
+
+    print("✅ Bot is running...")
     app.run_polling()
 
 if __name__ == "__main__":
